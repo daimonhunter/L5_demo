@@ -12,14 +12,14 @@
 */
 
 Route::get('/', 'WelcomeController@index');
-
+Route::get('welcome/testCache','WelcomeController@testCache');
 Route::get('home', 'HomeController@index');
 
 Route::controllers([
 	'auth' => 'Auth\AuthController',
 	'password' => 'Auth\PasswordController',
 ]);
-Route::group(['prefix' => 'rest/api','middleware'=> 'test'], function()
+Route::group(['prefix' => 'rest/api','middleware'=> 'guest'], function()
 {
     Route::get('login', 'Auth\AuthController@getlogin');
 });

@@ -1,5 +1,8 @@
 <?php namespace App\Http\Controllers;
-
+use DB;
+use Cache;
+use Session;
+use Laravel_helpers;
 class WelcomeController extends Controller {
 
 	/*
@@ -28,9 +31,22 @@ class WelcomeController extends Controller {
 	 *
 	 * @return Response
 	 */
-	public function index()
-	{
-		return view('welcome');
-	}
+    public function index()
+    {
+        return view('welcome');
+    }
+
+    public function testCache()
+    {
+        if(Session::has('Clients')){
+            $data = Session::get('Clients');
+            echo 'with session';
+        } else {
+            $data = cacheQuery("SELECT * FROM oauth_clients WHERE `id` > 0", 30);
+            Session::put('Clients',$data);
+            echo 'without session';
+        }
+        var_dump($data);
+    }
 
 }
