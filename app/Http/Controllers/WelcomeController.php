@@ -1,36 +1,39 @@
 <?php namespace App\Http\Controllers;
+
 use DB;
 use Cache;
+use League\Flysystem\Exception;
 use Session;
-use Laravel_helpers;
-class WelcomeController extends Controller {
+use App;
+use Illuminate\Support\Facades\Request;
 
-	/*
-	|--------------------------------------------------------------------------
-	| Welcome Controller
-	|--------------------------------------------------------------------------
-	|
-	| This controller renders the "marketing page" for the application and
-	| is configured to only allow guests. Like most of the other sample
-	| controllers, you are free to modify or remove it as you desire.
-	|
-	*/
+class WelcomeController extends Controller
+{
 
-	/**
-	 * Create a new controller instance.
-	 *
-	 * @return void
-	 */
-	public function __construct()
-	{
-		$this->middleware('guest');
-	}
+    /*
+    |--------------------------------------------------------------------------
+    | Welcome Controller
+    |--------------------------------------------------------------------------
+    |
+    | This controller renders the "marketing page" for the application and
+    | is configured to only allow guests. Like most of the other sample
+    | controllers, you are free to modify or remove it as you desire.
+    |
+    */
 
-	/**
-	 * Show the application welcome screen to the user.
-	 *
-	 * @return Response
-	 */
+    /**
+     * Create a new controller instance.
+     *
+     */
+    public function __construct()
+    {
+    }
+
+    /**
+     * Show the application welcome screen to the user.
+     *
+     * @return Response
+     */
     public function index()
     {
         return view('welcome');
@@ -38,15 +41,34 @@ class WelcomeController extends Controller {
 
     public function testCache()
     {
-        if(Session::has('Clients')){
-            $data = Session::get('Clients');
-            echo 'with session';
-        } else {
-            $data = cacheQuery("SELECT * FROM oauth_clients WHERE `id` > 0", 30);
-            Session::put('Clients',$data);
-            echo 'without session';
+        try {
+            //Session and Cache
+            if (Session::has('Clients')) {
+                $data = Session::get('Clients');
+            } else {
+                $data = $this->cacheQuery("SELECT * FROM oauth_clients WHERE `id` > 0", 30);
+                Session::put('Clients', $data);
+            }
+
+            $uid = Request::input('uid', 2);
+            $userCacheKey = 'users:' . $uid;
+            $user = Cache::remember($userCacheKey, 5, function () use ($uid) {
+                return App\User::findOrFail($uid)->toArray();
+            });
+
+        } catch (Exception $e) {
+            abort(404, $e->getMessage());
         }
         var_dump($data);
+        var_dump($user);
+        echo date('H:i',time());
+    }
+
+    function cacheQuery($sql, $timeout = 60)
+    {
+        return Cache::remember(md5($sql), $timeout, function () use ($sql) {
+            return DB::select(DB::raw($sql));
+        });
     }
 
 }

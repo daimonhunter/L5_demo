@@ -2,6 +2,7 @@
 
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Support\Facades\Request;
 
 class Handler extends ExceptionHandler {
 
@@ -36,7 +37,9 @@ class Handler extends ExceptionHandler {
 	 */
 	public function render($request, Exception $e)
 	{
-		return parent::render($request, $e);
+        if(env('APP_DEBUG')){
+            return parent::render($request, $e);
+        }
+//        return redirect('404');
 	}
-
 }
